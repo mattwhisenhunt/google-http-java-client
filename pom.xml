@@ -241,8 +241,8 @@
       </dependency>
       <dependency>
         <groupId>javax.jdo</groupId>
-        <artifactId>jdo2-api</artifactId>
-        <version>${project.jdo2-api.version}</version>
+        <artifactId>jdo-api</artifactId>
+        <version>${project.jdo-api.version}</version>
       </dependency>
       <dependency>
         <groupId>org.datanucleus</groupId>
@@ -614,6 +614,6 @@
     <project.xpp3.version>1.1.4c</project.xpp3.version>
     <project.commons-logging.version>1.1.1</project.commons-logging.version>
     <project.httpclient.version>4.5.3</project.httpclient.version>
-    <project.jdo2-api.version>2.3-eb</project.jdo2-api.version>
+    <project.jdo-api.version>3.1</project.jdo-api.version>
   </properties>
 </project>
