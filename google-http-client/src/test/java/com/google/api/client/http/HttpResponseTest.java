@@ -22,12 +22,17 @@ import com.google.api.client.testing.http.MockLowLevelHttpResponse;
 import com.google.api.client.testing.util.LogRecordingHandler;
 import com.google.api.client.testing.util.TestableByteArrayInputStream;
 import com.google.api.client.util.Key;
+import com.google.common.io.CharStreams;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.logging.Level;
+import java.util.zip.GZIPOutputStream;
 import junit.framework.TestCase;
 
 /**
@@ -189,11 +194,12 @@ public class HttpResponseTest extends TestCase {
   public void testParseAs_classNoContent() throws Exception {
     final MockLowLevelHttpResponse result = new MockLowLevelHttpResponse();
 
-    for (final int status : new int[] {
+    for (final int status : new int[]{
         HttpStatusCodes.STATUS_CODE_NO_CONTENT, HttpStatusCodes.STATUS_CODE_NOT_MODIFIED, 102}) {
       HttpTransport transport = new MockHttpTransport() {
         @Override
-        public LowLevelHttpRequest buildRequest(String method, final String url) throws IOException {
+        public LowLevelHttpRequest buildRequest(String method, final String url)
+            throws IOException {
           return new MockLowLevelHttpRequest() {
             @Override
             public LowLevelHttpResponse execute() throws IOException {
@@ -220,11 +226,12 @@ public class HttpResponseTest extends TestCase {
   public void testParseAs_typeNoContent() throws Exception {
     final MockLowLevelHttpResponse result = new MockLowLevelHttpResponse();
 
-    for (final int status : new int[] {
+    for (final int status : new int[]{
         HttpStatusCodes.STATUS_CODE_NO_CONTENT, HttpStatusCodes.STATUS_CODE_NOT_MODIFIED, 102}) {
       HttpTransport transport = new MockHttpTransport() {
         @Override
-        public LowLevelHttpRequest buildRequest(String method, final String url) throws IOException {
+        public LowLevelHttpRequest buildRequest(String method, final String url)
+            throws IOException {
           return new MockLowLevelHttpRequest() {
             @Override
             public LowLevelHttpResponse execute() throws IOException {
@@ -397,5 +404,216 @@ public class HttpResponseTest extends TestCase {
     HttpRequest request =
         transport.createRequestFactory().buildHeadRequest(HttpTesting.SIMPLE_GENERIC_URL);
     request.execute().getContent();
+  }
+
+  public void testGetContent_gzip() throws IOException {
+    String data = "{\n"
+        + " \"kind\": \"discovery#directoryList\",\n"
+        + " \"discoveryVersion\": \"v1\",\n"
+        + " \"items\": [\n"
+        + "  {\n"
+        + "   \"kind\": \"discovery#directoryItem\",\n"
+        + "   \"id\": \"acceleratedmobilepageurl:v1\",\n"
+        + "   \"name\": \"acceleratedmobilepageurl\",\n"
+        + "   \"version\": \"v1\",\n"
+        + "   \"title\": \"Accelerated Mobile Pages (AMP) URL API\",\n"
+        + "   \"description\": \"This API contains a single method, batchGet. Call this method to retrieve the AMP URL (and equivalent AMP Cache URL) for given public URL(s).\",\n"
+        + "   \"discoveryRestUrl\": \"https://acceleratedmobilepageurl.googleapis.com/$discovery/rest?version=v1\",\n"
+        + "   \"icons\": {\n"
+        + "    \"x16\": \"https://www.gstatic.com/images/branding/product/1x/googleg_16dp.png\",\n"
+        + "    \"x32\": \"https://www.gstatic.com/images/branding/product/1x/googleg_32dp.png\"\n"
+        + "   },\n"
+        + "   \"documentationLink\": \"https://developers.google.com/amp/cache/\",\n"
+        + "   \"preferred\": true\n"
+        + "  },\n"
+        + "  {\n"
+        + "   \"kind\": \"discovery#directoryItem\",\n"
+        + "   \"id\": \"adexchangebuyer:v1.2\",\n"
+        + "   \"name\": \"adexchangebuyer\",\n"
+        + "   \"version\": \"v1.2\",\n"
+        + "   \"title\": \"Ad Exchange Buyer API\",\n"
+        + "   \"description\": \"Accesses your bidding-account information, submits creatives for validation, finds available direct deals, and retrieves performance reports.\",\n"
+        + "   \"discoveryRestUrl\": \"https://www.googleapis.com/discovery/v1/apis/adexchangebuyer/v1.2/rest\",\n"
+        + "   \"discoveryLink\": \"./apis/adexchangebuyer/v1.2/rest\",\n"
+        + "   \"icons\": {\n"
+        + "    \"x16\": \"https://www.google.com/images/icons/product/doubleclick-16.gif\",\n"
+        + "    \"x32\": \"https://www.google.com/images/icons/product/doubleclick-32.gif\"\n"
+        + "   },\n"
+        + "   \"documentationLink\": \"https://developers.google.com/ad-exchange/buyer-rest\",\n"
+        + "   \"preferred\": false\n"
+        + "  },\n"
+        + "  {\n"
+        + "   \"kind\": \"discovery#directoryItem\",\n"
+        + "   \"id\": \"adexchangebuyer:v1.3\",\n"
+        + "   \"name\": \"adexchangebuyer\",\n"
+        + "   \"version\": \"v1.3\",\n"
+        + "   \"title\": \"Ad Exchange Buyer API\",\n"
+        + "   \"description\": \"Accesses your bidding-account information, submits creatives for validation, finds available direct deals, and retrieves performance reports.\",\n"
+        + "   \"discoveryRestUrl\": \"https://www.googleapis.com/discovery/v1/apis/adexchangebuyer/v1.3/rest\",\n"
+        + "   \"discoveryLink\": \"./apis/adexchangebuyer/v1.3/rest\",\n"
+        + "   \"icons\": {\n"
+        + "    \"x16\": \"https://www.google.com/images/icons/product/doubleclick-16.gif\",\n"
+        + "    \"x32\": \"https://www.google.com/images/icons/product/doubleclick-32.gif\"\n"
+        + "   },\n"
+        + "   \"documentationLink\": \"https://developers.google.com/ad-exchange/buyer-rest\",\n"
+        + "   \"preferred\": false\n"
+        + "  },\n"
+        + "  {\n"
+        + "   \"kind\": \"discovery#directoryItem\",\n"
+        + "   \"id\": \"adexchangebuyer:v1.4\",\n"
+        + "   \"name\": \"adexchangebuyer\",\n"
+        + "   \"version\": \"v1.4\",\n"
+        + "   \"title\": \"Ad Exchange Buyer API\",\n"
+        + "   \"description\": \"Accesses your bidding-account information, submits creatives for validation, finds available direct deals, and retrieves performance reports.\",\n"
+        + "   \"discoveryRestUrl\": \"https://www.googleapis.com/discovery/v1/apis/adexchangebuyer/v1.4/rest\",\n"
+        + "   \"discoveryLink\": \"./apis/adexchangebuyer/v1.4/rest\",\n"
+        + "   \"icons\": {\n"
+        + "    \"x16\": \"https://www.google.com/images/icons/product/doubleclick-16.gif\",\n"
+        + "    \"x32\": \"https://www.google.com/images/icons/product/doubleclick-32.gif\"\n"
+        + "   },\n"
+        + "   \"documentationLink\": \"https://developers.google.com/ad-exchange/buyer-rest\",\n"
+        + "   \"preferred\": true\n"
+        + "  },\n"
+        + "  {\n"
+        + "   \"kind\": \"discovery#directoryItem\",\n"
+        + "   \"id\": \"adexchangebuyer2:v2beta1\",\n"
+        + "   \"name\": \"adexchangebuyer2\",\n"
+        + "   \"version\": \"v2beta1\",\n"
+        + "   \"title\": \"Ad Exchange Buyer API II\",\n"
+        + "   \"description\": \"Accesses the latest features for managing Ad Exchange accounts, Real-Time Bidding configurations and auction metrics, and Marketplace programmatic deals.\",\n"
+        + "   \"discoveryRestUrl\": \"https://adexchangebuyer.googleapis.com/$discovery/rest?version=v2beta1\",\n"
+        + "   \"icons\": {\n"
+        + "    \"x16\": \"https://www.gstatic.com/images/branding/product/1x/googleg_16dp.png\",\n"
+        + "    \"x32\": \"https://www.gstatic.com/images/branding/product/1x/googleg_32dp.png\"\n"
+        + "   },\n"
+        + "   \"documentationLink\": \"https://developers.google.com/ad-exchange/buyer-rest/reference/rest/\",\n"
+        + "   \"preferred\": true\n"
+        + "  },\n"
+        + "  {\n"
+        + "   \"kind\": \"discovery#directoryItem\",\n"
+        + "   \"id\": \"adexchangeseller:v1\",\n"
+        + "   \"name\": \"adexchangeseller\",\n"
+        + "   \"version\": \"v1\",\n"
+        + "   \"title\": \"Ad Exchange Seller API\",\n"
+        + "   \"description\": \"Accesses the inventory of Ad Exchange seller users and generates reports.\",\n"
+        + "   \"discoveryRestUrl\": \"https://www.googleapis.com/discovery/v1/apis/adexchangeseller/v1/rest\",\n"
+        + "   \"discoveryLink\": \"./apis/adexchangeseller/v1/rest\",\n"
+        + "   \"icons\": {\n"
+        + "    \"x16\": \"https://www.google.com/images/icons/product/doubleclick-16.gif\",\n"
+        + "    \"x32\": \"https://www.google.com/images/icons/product/doubleclick-32.gif\"\n"
+        + "   },\n"
+        + "   \"documentationLink\": \"https://developers.google.com/ad-exchange/seller-rest/\",\n"
+        + "   \"preferred\": false\n"
+        + "  },\n"
+        + "  {\n"
+        + "   \"kind\": \"discovery#directoryItem\",\n"
+        + "   \"id\": \"adexchangeseller:v1.1\",\n"
+        + "   \"name\": \"adexchangeseller\",\n"
+        + "   \"version\": \"v1.1\",\n"
+        + "   \"title\": \"Ad Exchange Seller API\",\n"
+        + "   \"description\": \"Accesses the inventory of Ad Exchange seller users and generates reports.\",\n"
+        + "   \"discoveryRestUrl\": \"https://www.googleapis.com/discovery/v1/apis/adexchangeseller/v1.1/rest\",\n"
+        + "   \"discoveryLink\": \"./apis/adexchangeseller/v1.1/rest\",\n"
+        + "   \"icons\": {\n"
+        + "    \"x16\": \"https://www.google.com/images/icons/product/doubleclick-16.gif\",\n"
+        + "    \"x32\": \"https://www.google.com/images/icons/product/doubleclick-32.gif\"\n"
+        + "   },\n"
+        + "   \"documentationLink\": \"https://developers.google.com/ad-exchange/seller-rest/\",\n"
+        + "   \"preferred\": false\n"
+        + "  },\n"
+        + "  {\n"
+        + "   \"kind\": \"discovery#directoryItem\",\n"
+        + "   \"id\": \"adexchangeseller:v2.0\",\n"
+        + "   \"name\": \"adexchangeseller\",\n"
+        + "   \"version\": \"v2.0\",\n"
+        + "   \"title\": \"Ad Exchange Seller API\",\n"
+        + "   \"description\": \"Accesses the inventory of Ad Exchange seller users and generates reports.\",\n"
+        + "   \"discoveryRestUrl\": \"https://www.googleapis.com/discovery/v1/apis/adexchangeseller/v2.0/rest\",\n"
+        + "   \"discoveryLink\": \"./apis/adexchangeseller/v2.0/rest\",\n"
+        + "   \"icons\": {\n"
+        + "    \"x16\": \"https://www.google.com/images/icons/product/doubleclick-16.gif\",\n"
+        + "    \"x32\": \"https://www.google.com/images/icons/product/doubleclick-32.gif\"\n"
+        + "   },\n"
+        + "   \"documentationLink\": \"https://developers.google.com/ad-exchange/seller-rest/\",\n"
+        + "   \"preferred\": true\n"
+        + "  },\n"
+        + "  {\n"
+        + "   \"kind\": \"discovery#directoryItem\",\n"
+        + "   \"id\": \"adexperiencereport:v1\",\n"
+        + "   \"name\": \"adexperiencereport\",\n"
+        + "   \"version\": \"v1\",\n"
+        + "   \"title\": \"Google Ad Experience Report API\",\n"
+        + "   \"description\": \"View Ad Experience Report data, and get a list of sites that have a significant number of annoying ads.\",\n"
+        + "   \"discoveryRestUrl\": \"https://adexperiencereport.googleapis.com/$discovery/rest?version=v1\",\n"
+        + "   \"icons\": {\n"
+        + "    \"x16\": \"https://www.gstatic.com/images/branding/product/1x/googleg_16dp.png\",\n"
+        + "    \"x32\": \"https://www.gstatic.com/images/branding/product/1x/googleg_32dp.png\"\n"
+        + "   },\n"
+        + "   \"documentationLink\": \"https://developers.google.com/ad-experience-report/\",\n"
+        + "   \"preferred\": true\n"
+        + "  },\n"
+        + "  {\n"
+        + "   \"kind\": \"discovery#directoryItem\",\n"
+        + "   \"id\": \"admin:datatransfer_v1\",\n"
+        + "   \"name\": \"admin\",\n"
+        + "   \"version\": \"datatransfer_v1\",\n"
+        + "   \"title\": \"Admin Data Transfer API\",\n"
+        + "   \"description\": \"Transfers user data from one user to another.\",\n"
+        + "   \"discoveryRestUrl\": \"https://www.googleapis.com/discovery/v1/apis/admin/datatransfer_v1/rest\",\n"
+        + "   \"discoveryLink\": \"./apis/admin/datatransfer_v1/rest\",\n"
+        + "   \"icons\": {\n"
+        + "    \"x16\": \"https://www.gstatic.com/images/branding/product/1x/googleg_16dp.png\",\n"
+        + "    \"x32\": \"https://www.gstatic.com/images/branding/product/1x/googleg_32dp.png\"\n"
+        + "   },\n"
+        + "   \"documentationLink\": \"https://developers.google.com/admin-sdk/data-transfer/\",\n"
+        + "   \"preferred\": false\n"
+        + "  },\n"
+        + "  {\n"
+        + "   \"kind\": \"discovery#directoryItem\",\n"
+        + "   \"id\": \"youtubereporting:v1\",\n"
+        + "   \"name\": \"youtubereporting\",\n"
+        + "   \"version\": \"v1\",\n"
+        + "   \"title\": \"YouTube Reporting API\",\n"
+        + "   \"description\": \"Schedules reporting jobs containing your YouTube Analytics data and downloads the resulting bulk data reports in the form of CSV files.\",\n"
+        + "   \"discoveryRestUrl\": \"https://youtubereporting.googleapis.com/$discovery/rest?version=v1\",\n"
+        + "   \"icons\": {\n"
+        + "    \"x16\": \"https://www.gstatic.com/images/branding/product/1x/googleg_16dp.png\",\n"
+        + "    \"x32\": \"https://www.gstatic.com/images/branding/product/1x/googleg_32dp.png\"\n"
+        + "   },\n"
+        + "   \"documentationLink\": \"https://developers.google.com/youtube/reporting/v1/reports/\",\n"
+        + "   \"preferred\": true\n"
+        + "  }\n"
+        + " ]\n"
+        + "}";
+    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+    GZIPOutputStream gzip = new GZIPOutputStream(bos);
+    gzip.write(data.getBytes(StandardCharsets.UTF_8));
+    gzip.close();
+    final byte[] contentBytes = bos.toByteArray();
+    System.out.println(data.length());
+    System.out.println(contentBytes.length);
+
+    HttpTransport transport = new MockHttpTransport() {
+      @Override
+      public LowLevelHttpRequest buildRequest(String method, final String url) throws IOException {
+        return new MockLowLevelHttpRequest() {
+          @Override
+          public LowLevelHttpResponse execute() throws IOException {
+            MockLowLevelHttpResponse result = new MockLowLevelHttpResponse();
+            result.setContent(contentBytes);
+            result.setContentEncoding("gzip");
+            result.setContentType("text/plain");
+            return result;
+          }
+        };
+      }
+    };
+    HttpRequest request =
+        transport.createRequestFactory().buildHeadRequest(HttpTesting.SIMPLE_GENERIC_URL);
+
+    InputStream contentStream = request.execute().getContent();
+    String result = CharStreams
+        .toString(new InputStreamReader(contentStream, StandardCharsets.UTF_8));
+    assertEquals(data, result);
   }
 }
