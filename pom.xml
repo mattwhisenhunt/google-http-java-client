@@ -22,10 +22,6 @@
 
   <inceptionYear>2011</inceptionYear>
 
-  <prerequisites>
-    <maven>2.0.9</maven>
-  </prerequisites>
-
   <scm>
     <connection>scm:git:https://github.com/google/google-http-java-client.git</connection>
     <developerConnection>scm:git:git@github.com:google/google-http-java-client.git</developerConnection>
@@ -84,8 +80,6 @@
     <module>google-http-client-xml</module>
     <module>google-http-client-findbugs</module>
     <module>google-http-client-test</module>
-    <module>samples/dailymotion-simple-cmdline-sample</module>
-    <module>samples/googleplus-simple-cmdline-sample</module>
   </modules>
 
   <pluginRepositories>
