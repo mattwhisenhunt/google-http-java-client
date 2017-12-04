@@ -39,59 +39,6 @@
           </execution>
         </executions>
       </plugin>
-      <!-- Use jarjar to include a private copy of Guava JDK5. -->
-      <plugin>
-        <groupId>org.sonatype.plugins</groupId>
-        <artifactId>jarjar-maven-plugin</artifactId>
-        <executions>
-          <execution>
-            <phase>package</phase>
-            <goals>
-              <goal>jarjar</goal>
-            </goals>
-            <configuration>
-              <includes>
-                <include>com.google.guava:guava-jdk5</include>
-              </includes>
-              <rules>
-                <rule>
-                  <pattern>com.google.common.**</pattern>
-                  <result>com.google.api.client.repackaged.com.google.common.@1</result>
-                </rule>
-                <keep>
-                  <pattern>com.google.api.client.**</pattern>
-                </keep>
-              </rules>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <artifactId>maven-antrun-plugin</artifactId>
-        <executions>
-          <!-- Remove extraneous files from the jarjar'ed Apache Commons Codec
-               Library. -->
-          <execution>
-            <id>scrub</id>
-            <phase>package</phase>
-            <goals>
-              <goal>run</goal>
-            </goals>
-            <configuration>
-              <target>
-                <jar destfile="target/scrubbed.jar" filesetmanifest="merge">
-                  <zipfileset src="target/google-http-client-${project.version}.jar">
-                    <exclude name="**/org/apache/commons/codec/language/bm/*.txt"/>
-                    <exclude name="META-INF/*.txt"/>
-                    <exclude name="META-INF/maven/**"/>
-                  </zipfileset>
-                </jar>
-                <move file="target/scrubbed.jar" tofile="target/google-http-client-${project.version}.jar"/>
-              </target>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
     </plugins>
   </build>
   <dependencies>
