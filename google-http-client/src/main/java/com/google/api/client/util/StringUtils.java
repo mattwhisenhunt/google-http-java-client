@@ -15,18 +15,11 @@
 package com.google.api.client.util;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 
 
 /**
  * Utilities for strings.
- *
- * <p>
- * Some of these methods are a proxy for version 1.6 (or newer) of the Apache Commons Codec
- * {@link StringUtils} implementation. This is needed in order to support platforms like Android
- * which already include an older version of the Apache Commons Codec (Android includes version
- * 1.3). To avoid a dependency library conflict, this library includes a reduced private copy of
- * version 1.6 (or newer) of the Apache Commons Codec (using a tool like jarjar).
- * </p>
  *
  * @since 1.8
  * @author Yaniv Inbar
@@ -44,17 +37,12 @@ public class StringUtils {
    * Encodes the given string into a sequence of bytes using the UTF-8 charset, storing the result
    * into a new byte array.
    *
-   * @param string the String to encode, may be <code>null</code>
-   * @return encoded bytes, or <code>null</code> if the input string was <code>null</code>
-   * @throws IllegalStateException Thrown when the charset is missing, which should be never
-   *         according the the Java specification.
-   * @see <a href="http://download.oracle.com/javase/1.5.0/docs/api/java/nio/charset/Charset.html"
-   *      >Standard charsets</a>
-   * @see org.apache.commons.codec.binary.StringUtils#getBytesUtf8(String)
+   * @param string the String to encode
+   * @return encoded bytes
    * @since 1.8
    */
   public static byte[] getBytesUtf8(String string) {
-    return org.apache.commons.codec.binary.StringUtils.getBytesUtf8(string);
+      return string.getBytes(StandardCharsets.UTF_8);
   }
 
   /**
@@ -62,17 +50,9 @@ public class StringUtils {
    * charset.
    *
    * @param bytes The bytes to be decoded into characters
-   * @return A new <code>String</code> decoded from the specified array of bytes using the UTF-8
-   *         charset, or <code>null</code> if the input byte array was <code>null</code>.
-   * @throws IllegalStateException Thrown when a {@link UnsupportedEncodingException} is caught,
-   *         which should never happen since the charset is required.
-   * @see org.apache.commons.codec.binary.StringUtils#newStringUtf8(byte[])
    * @since 1.8
    */
   public static String newStringUtf8(byte[] bytes) {
-    return org.apache.commons.codec.binary.StringUtils.newStringUtf8(bytes);
-  }
-
-  private StringUtils() {
+      return new String(bytes, StandardCharsets.UTF_8);
   }
 }
