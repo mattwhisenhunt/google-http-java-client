@@ -1004,10 +1004,9 @@ public final class HttpRequest {
       // execute
       lowLevelHttpRequest.setTimeout(connectTimeout, readTimeout);
       // switch tracing scope to current span
-      Scope ws = tracer.withSpan(span);
       OpenCensusUtils.recordSentMessageEvent(
           span, sentIdGenerator++, lowLevelHttpRequest.getContentLength());
-      try {
+      try (Scope ws = tracer.withSpan(span)) {
         LowLevelHttpResponse lowLevelHttpResponse = lowLevelHttpRequest.execute();
         if (lowLevelHttpResponse != null) {
           OpenCensusUtils.recordReceivedMessageEvent(
@@ -1036,8 +1035,6 @@ public final class HttpRequest {
         if (loggable) {
           logger.log(Level.WARNING, "exception thrown while executing request", e);
         }
-      } finally {
-        ws.close();
       }
 
       // Flag used to indicate if an exception is thrown before the response has completed
